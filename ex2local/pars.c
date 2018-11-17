@@ -1,48 +1,20 @@
+/*Description: This is the parsing module - Here are the functions that deal with
+parsing of the input file, output files of the programs tested and the excpected
+results files.
+*/
 #include "pars.h"
 
-int count_line_space(p_ret_str) {
-	int whitespace = 0;
-	char *temp = p_ret_str;
-	char ch;
-	for (int i = 0; i < strlen(p_ret_str); i++) {
-		ch = temp[i];
-		if (ch == ' ')
-			++whitespace;
-	}
-	return whitespace;
-}
-
-
-char pars_line(char **Line, char **program, char **args_for_thread, char **output_path) {
-
-	char *word = NULL;
-	char delim[] = " "; //need to check if i change to space and ,
-	char *safty_token = NULL;
-
-	char *P_last_space = NULL;
-
-	if (1 == count_line_space(*Line)) {
-		word = strtok_s(*Line, delim, &safty_token); // get program name
-		*program = word; // copy the program path to *program
-		*args_for_thread = NULL;
-		*output_path = strtok_s(safty_token, "\n", &safty_token);//puts \0 insted of \n (need to check) 
-		printf("first string: %s \n second string: %s \n third string : %s \n", *program, *args_for_thread, *output_path);
-
-
-	}
-	else {
-		word = strtok_s(*Line, delim, &safty_token); // get program name
-			*program = word;  // copy the program path to *program
-		P_last_space = strrchr(safty_token, ' ');
-		*P_last_space = '\0';
-		*args_for_thread = safty_token;
-		P_last_space += 1;//gets the output file path safty token poits to it
- 		*output_path = strtok_s(P_last_space, "\n", &P_last_space);//puts \0 insted of \n
-		printf("first string: %s \n second string: %s \n third string : %s \n", *program, *args_for_thread, *output_path);
-	}
-
-}
-
+/*Description: This functions retrieves the program name and its args
+in order to send it to the create process function. Also, retrieves the path
+to the excpected results file.
+Parameters: char **Line - An adress of a pointer which holds the entire
+line inside the input file. 
+char **command_line - An adress of a pointer which will hold the needed command
+line. This parameter serves also as an output.
+char **output_path - An adress of a pointer which will hold thepath
+to the excpected results file. This parameter serves also as an output.
+Return: As described above - command_line, output_path.
+*/
 void create_command_line(char **Line, char **command_line, char **output_path) {
 	char *P_last_space = NULL;
 	P_last_space = strrchr(*Line, ' ');
@@ -52,6 +24,12 @@ void create_command_line(char **Line, char **command_line, char **output_path) {
 	*command_line = *Line;
 }
 
+
+/*Description: Counts the number of lines in the input file in order
+to know how much tests and threads will be open.
+Parameters: A file handler of the input file with all the tests to run.
+Return: Number of lines in the input file.
+*/
 int line_counter(char *file_path) {
 	FILE *input_file_stream;
 	int lines = 1;
@@ -78,47 +56,47 @@ int line_counter(char *file_path) {
 	return lines;
 }
 
-
-
-char* backslash_adder(char *exe_path) {
-	char *temp_string = NULL;
-	char c;
-	char *pTemp = exe_path;
-	temp_string = (char *)malloc((strlen(exe_path)  + char_count_in_str(exe_path,'\\') + 5) * sizeof(char));
-	strcpy_s(temp_string, 3 , "\"");
-	printf("temp : %d\n", strlen(temp_string) + 1);
-	printf("path : %d\n", strlen(exe_path) + 1);
-	strcat_s(temp_string, strlen(exe_path) + strlen(temp_string) +2, exe_path);
-
-
-	for (int i = 1; i < strlen(temp_string) + 1; i++) {//start with 2 because i dont want to check the "\//
-		c = *(temp_string+i);//
-		if ('\\' == c) {
-			memmove(temp_string + i + 1, temp_string + i, strlen(temp_string) - i + 1);
-			//temp_string[i] = '\\';
-		}
-	}
-	strcat_s(temp_string, strlen(exe_path) + strlen(temp_string) + 2 , "\"");
-
-	return temp_string;
-}
-
-int char_count_in_str(char *pString, char c) {
-	char* pTemp = pString;
-	int count = 0;
-	while (pTemp != NULL)
+/*Description: This function compares between two files. This is needed
+in order to know whether the tested program gave the correct output or not.
+Parameters: char *actual_results - a pointer to the path of the file containing
+the output of the tested program.
+char *expected_results - a pointer to the path of the file containing
+the excpected output of the tested program.
+Return: An int which defines whether the files are identical.
+*/
+int file_compare(char *actual_results, char *expected_results) {
+	FILE *fp_actual_results = NULL;
+	FILE *fp_expected_results = NULL;
+	errno_t retval;
+	char ch1, ch2;
+	retval = fopen_s(&fp_actual_results, actual_results, "r");
+	if (0 != retval)
 	{
-		pTemp = strchr(pTemp, c);
-		if (pTemp) {
-			pTemp++;
-			count++;
-		}
+		printf("Failed to open file.\n");
+		return STATUS_CODE_FAILURE;
 	}
-}
-
-
-int file_compare(char *file_path_1, char *file_path_2) {
-
+	retval = fopen_s(&fp_expected_results, expected_results, "r");
+	if (0 != retval)
+	{
+		printf("Failed to open file.\n");
+		return STATUS_CODE_FAILURE;
+	}
+	ch1 = getc(fp_actual_results);
+	ch2 = getc(fp_expected_results);
+	while (ch1 != EOF && ch2 != EOF) {
+		if (ch1 != ch2){
+			return STATUS_FILES_DIFFER;
+		}
+		ch1 = getc(fp_actual_results);
+		ch2 = getc(fp_expected_results);
+	}
+	retval = fclose(fp_actual_results);
+	if (0 != retval)
+		return STATUS_CODE_FAILURE;
+	retval = fclose(fp_expected_results);
+	if (0 != retval)
+		return STATUS_CODE_FAILURE;
+	return 0;
 }
 
 
