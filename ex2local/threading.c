@@ -20,7 +20,7 @@ DWORD WINAPI test_and_compare(LPVOID lpParam)
 	TCHAR               *p_command = NULL; // takescommand likne from struct
 	Threads_to_run_s *params_node;
 	DWORD waitinmillsec = TIMEOUT_IN_MILLISECONDS;
-	DWORD returned_status = NULL;
+	DWORD returned_status = 0;
 	int file_comp_flag;
 
 	/* Check if lpParam is NULL */

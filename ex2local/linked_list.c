@@ -69,36 +69,50 @@ Return: void.
 */
 void thread_list_creator_helper_command(Threads_to_run_s *node, char *command_line, char *output_path) {
 	char *program_path = NULL;
+	char *backslash_search = NULL;
 	node->command_line = (char*)malloc((strlen(command_line) + 1) * sizeof(char));
 	if (node->command_line == NULL) return STATUS_CODE_FAILURE;
 	strcpy_s(node->command_line, strlen(command_line) + 1, command_line);
+
+
+
+	node->program_output = (char*)malloc((strlen(command_line) + 1) * sizeof(char));
+	if (node->program_output == NULL) return STATUS_CODE_FAILURE;
 
 	program_path = strchr(command_line, ' ');
 	if (NULL != program_path) {
 		*program_path = '\0';
 	}
-		program_path = strchr(command_line, '.');
-		*(program_path + 1) = 't';
-		*(program_path + 3) = 't';
-		node->program_output = (char*)malloc((strlen(command_line) +1 )* sizeof(char));
-		if (node->program_output == NULL) return STATUS_CODE_FAILURE;
+	program_path = strchr(command_line, '.');
+	*(program_path + 1) = 't';
+	*(program_path + 3) = 't';
+
+
+	backslash_search = strrchr(command_line, '\\');
+	if (NULL == backslash_search) {
 		strcpy_s(node->program_output, strlen(command_line) + 1, command_line);
-
-		node->output_path = (char*)malloc((strlen(output_path) +1 )* sizeof(char));
-		if (node->output_path == NULL) return STATUS_CODE_FAILURE;
-		strcpy_s(node->output_path, strlen(output_path) + 1, output_path);
-
-
-		node->thread_handle = (HANDLE *)malloc(sizeof(HANDLE));
-		if (node->thread_handle == NULL) return STATUS_CODE_FAILURE;
-		node->return_value = (DWORD *)malloc(sizeof(DWORD));
-		if (node->return_value == NULL) return STATUS_CODE_FAILURE;
-		node->status = (DWORD *)malloc(sizeof(DWORD));
-		if (node->status == NULL) return STATUS_CODE_FAILURE;
-		node->thread_handle = NULL;
-		node->return_value = NULL;
-		node->status = 69696969;
 	}
+	else {
+		*backslash_search = '\0';
+		backslash_search++;//now points to the start of the program.txt
+		strcpy_s(node->program_output, strlen(command_line) + 1, backslash_search);
+	}
+
+	node->output_path = (char*)malloc((strlen(output_path) +1 )* sizeof(char));
+	if (node->output_path == NULL) return STATUS_CODE_FAILURE;
+	strcpy_s(node->output_path, strlen(output_path) + 1, output_path);
+
+
+	node->thread_handle = (HANDLE *)malloc(sizeof(HANDLE));
+	if (node->thread_handle == NULL) return STATUS_CODE_FAILURE;
+	node->return_value = (DWORD *)malloc(sizeof(DWORD));
+	if (node->return_value == NULL) return STATUS_CODE_FAILURE;
+	node->status = (DWORD *)malloc(sizeof(DWORD));
+	if (node->status == NULL) return STATUS_CODE_FAILURE;
+	node->thread_handle = NULL;
+	node->return_value = NULL;
+	node->status = 69696969;
+}
 
 
 /*Description: Prints the results of the testing of the programs.

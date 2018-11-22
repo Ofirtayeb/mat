@@ -50,7 +50,7 @@ int main(int argc, char *argv[])
 	int num_of_lines = 0;
 	int handle_index = 0;
 	HANDLE *arr_of_thread_handles = NULL;
-	DWORD dwMilliseconds = INFINITE;//maybe need to be in h file
+	DWORD dwMilliseconds = INFINITE;
 	DWORD D_num_of_lines = 0;
 	DWORD return_value_of_wait = NULL;
 
