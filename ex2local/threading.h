@@ -12,7 +12,7 @@ the tested program info.*/
 
 
 
-#define TIMEOUT_IN_MILLISECONDS 100000
+#define TIMEOUT_IN_MILLISECONDS 10000
 #define MAX_MESSAGE_LEN 12
 #define ERROR_CODE ((int)(-1))
 #define THREAD_STATUS_FILE_COPMARE_FAILURE -69
