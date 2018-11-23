@@ -12,8 +12,8 @@ the tested program info.*/
 
 
 
-#define TIMEOUT_IN_MILLISECONDS 10000
-#define MAX_MESSAGE_LEN 11
+#define TIMEOUT_IN_MILLISECONDS 100000
+#define MAX_MESSAGE_LEN 12
 #define ERROR_CODE ((int)(-1))
 #define THREAD_STATUS_FILE_COPMARE_FAILURE -69
 
@@ -25,7 +25,7 @@ typedef struct Threads_to_run_s{
 	HANDLE thread_handle;
 	DWORD return_value;
 	DWORD status;
-	char message[MAX_MESSAGE_LEN];
+	char *message;
 	char *program_output;
 	char *command_line;
 	char *output_path;

@@ -21,6 +21,7 @@ void create_command_line(char **Line, char **command_line, char **output_path) {
 	*P_last_space = '\0';
 	P_last_space += 1;
 	*output_path = strtok_s(P_last_space, "\n", &P_last_space);//puts \0 insted of \n
+	*P_last_space = '\0';
 	*command_line = *Line;
 }
 
@@ -31,14 +32,16 @@ Parameters: A file handler of the input file with all the tests to run.
 Return: Number of lines in the input file.
 */
 int line_counter(char *file_path) {
-	FILE *input_file_stream;
+	FILE *input_file_stream = NULL;
 	int lines = 1;
-	char ch;
-	errno_t retval;
+	char ch = NULL;
+	errno_t retval = NULL;
+	printf("LINE:%d, function %s\n", __LINE__, __func__);
 	retval = fopen_s(&input_file_stream, file_path, "r");
 
 	if (0 != retval)
 	{
+		printf("LINE:%d, function %s\n", __LINE__, __func__);
 		printf("Failed to open file.\n");
 		return STATUS_CODE_FAILURE;
 	}
@@ -50,9 +53,15 @@ int line_counter(char *file_path) {
 			lines++;
 		}
 	}
+	printf("LINE:%d, function %s\n", __LINE__, __func__);
 	retval = fclose(input_file_stream);
-	if (0 != retval)
+	if (0 != retval) {
+
+		printf("LINE:%d, function %s\n", __LINE__, __func__);
+		printf("Failed to close file.\n");
 		return STATUS_CODE_FAILURE;
+	}
+
 	return lines;
 }
 
@@ -67,17 +76,22 @@ Return: An int which defines whether the files are identical.
 int file_compare(char *actual_results, char *expected_results) {
 	FILE *fp_actual_results = NULL;
 	FILE *fp_expected_results = NULL;
-	errno_t retval;
-	char ch1, ch2;
+	errno_t retval = NULL;
+	char ch1 = NULL;
+	char ch2 = NULL;
+	printf("LINE:%d, function %s, first file\n", __LINE__, __func__);
 	retval = fopen_s(&fp_actual_results, actual_results, "r");
 	if (0 != retval)
 	{
+		printf("LINE:%d, function %s\n", __LINE__, __func__);
 		printf("Failed to open file.\n");
 		return STATUS_CODE_FAILURE;
 	}
+	printf("LINE:%d, function %s  second file\n", __LINE__, __func__);
 	retval = fopen_s(&fp_expected_results, expected_results, "r");
 	if (0 != retval)
 	{
+		printf("LINE:%d, function %s\n", __LINE__, __func__);
 		printf("Failed to open file.\n");
 		return STATUS_CODE_FAILURE;
 	}
@@ -85,17 +99,35 @@ int file_compare(char *actual_results, char *expected_results) {
 	ch2 = getc(fp_expected_results);
 	while (ch1 != EOF && ch2 != EOF) {
 		if (ch1 != ch2){
+			printf("LINE:%d, function %s first file\n", __LINE__, __func__);
+			retval = fclose(fp_actual_results);
+			if (0 != retval) {
+				printf("LINE:%d, function %s\n", __LINE__, __func__);
+				return STATUS_CODE_FAILURE;
+			}
+			printf("LINE:%d, function %s second file\n", __LINE__, __func__);
+			retval = fclose(fp_expected_results);
+			if (0 != retval) {
+				printf("LINE:%d, function %s\n", __LINE__, __func__);
+				return STATUS_CODE_FAILURE;
+			}
 			return STATUS_FILES_DIFFER;
 		}
 		ch1 = getc(fp_actual_results);
 		ch2 = getc(fp_expected_results);
 	}
+	printf("LINE:%d, function %s first file\n", __LINE__, __func__);
 	retval = fclose(fp_actual_results);
-	if (0 != retval)
+	if (0 != retval) {
+		printf("LINE:%d, function %s\n", __LINE__, __func__);
 		return STATUS_CODE_FAILURE;
+	}
+	printf("LINE:%d, function %s second file\n", __LINE__, __func__);
 	retval = fclose(fp_expected_results);
-	if (0 != retval)
+	if (0 != retval) {
+		printf("LINE:%d, function %s\n", __LINE__, __func__);
 		return STATUS_CODE_FAILURE;
+	}
 	return 0;
 }
 

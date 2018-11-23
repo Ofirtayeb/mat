@@ -12,8 +12,9 @@ of the linked list of all programs tested.
 int num_of_lines - number of programs to test.
 Return: void.
 */
-void free_main_malloc(HANDLE *arr_of_thread_handle, int num_of_lines) {
+void free_main_malloc(HANDLE **arr_of_thread_handle, int num_of_lines) {
 	for (int i = 0; i < num_of_lines; i++) {
+		printf("arr_of_thread 0x%x\n", *arr_of_thread_handle[i]);
 		free(arr_of_thread_handle[i]);
 	}
 }
@@ -27,10 +28,13 @@ HANDLE *arr_of_thread_handle - a pointer to an array of handles.
 int num_of_lines - number of programs tested.
 Return: void.
 */
-void free_all(Threads_to_run_s **head, HANDLE *arr_of_thread_handle, int num_of_lines) {
-
-	free_main_malloc(arr_of_thread_handle, num_of_lines);
-	free_linked_list(&head);
+void free_all(Threads_to_run_s **head, HANDLE **arr_of_thread_handle) {
+	if (NULL != *arr_of_thread_handle)
+	{
+		free(arr_of_thread_handle);
+		arr_of_thread_handle = NULL;
+	}
+	free_linked_list(head);
 }
 
 
@@ -79,6 +83,7 @@ int main(int argc, char *argv[])
 
 	print_output(head_Threads_to_run_s, argv[2]);
 	close_all_handels(arr_of_thread_handles,num_of_lines);
-	free_all(&head_Threads_to_run_s, arr_of_thread_handles, num_of_lines);
+	free_all(&head_Threads_to_run_s, arr_of_thread_handles);
+	_CrtDumpMemoryLeaks();
 	return 0;
 }

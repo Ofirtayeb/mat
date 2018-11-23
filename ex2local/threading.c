@@ -16,9 +16,9 @@ Return: DWORD which is a success or a failure number.
 DWORD WINAPI test_and_compare(LPVOID lpParam) 
 {
 	PROCESS_INFORMATION proc_info;
-	BOOL                ret_val;
+	BOOL                ret_val = NULL;
 	TCHAR               *p_command = NULL; // takescommand likne from struct
-	Threads_to_run_s *params_node;
+	Threads_to_run_s *params_node = NULL;
 	DWORD waitinmillsec = TIMEOUT_IN_MILLISECONDS;
 	DWORD returned_status = 0;
 	int file_comp_flag;
@@ -32,15 +32,27 @@ DWORD WINAPI test_and_compare(LPVOID lpParam)
 	params_node = (Threads_to_run_s *)lpParam; /*casting*/
 
 	p_command = (TCHAR *)malloc((strlen(params_node->command_line)+1)*sizeof(TCHAR));
+
+	printf("before copy : p_command:%s\n", p_command);
 	strcpy_s(p_command, strlen(params_node->command_line) + 1, params_node->command_line);
+	p_command = _T(p_command);
+	printf("after copy : p_command:%s\n", p_command);
 	ret_val = CreateProcessSimple(p_command, &proc_info);
 	params_node->thread_handle = proc_info.hThread;
+	printf("before wait: LINE:%d, function %s second file\n", __LINE__, __func__); 
 	params_node->status = WaitForSingleObject(proc_info.hProcess, waitinmillsec);
+	printf("after wait: LINE:%d, function %s second file\n", __LINE__, __func__);
+	printf("GetExitCodeProcess args: proc_info.hProcess: %p --- returned_status: %lu\n", proc_info.hProcess, returned_status);
 	ret_val = GetExitCodeProcess(proc_info.hProcess, &returned_status);
-
+	printf("GetExitCodeProcess args: proc_info.hProcess: %p  --- returned_status: %lu\n", proc_info.hProcess, returned_status);
+	printf("after GetExitCodeProcess:\n, %d, %d, %d\n ", params_node->status,ret_val, returned_status);
 	params_node->return_value = returned_status;
 
+
+	printf("before fail : %s ---  %s\n", params_node->program_output, params_node->output_path);
+
 	if (WAIT_FAILED == params_node->status) {
+		printf("inside fail : %s ---  %s\n", params_node->program_output, params_node->output_path);
 		return STATUS_CODE_FAILURE;
 	}
 	if (WAIT_TIMEOUT == params_node->status) {
@@ -48,6 +60,7 @@ DWORD WINAPI test_and_compare(LPVOID lpParam)
 	}
 	else if (0 == params_node->return_value){
 		if (WAIT_OBJECT_0 == params_node->status) {//check output
+			printf("LINE:%d, function:%s, params_node->program_output:%s, arams_node->output_path:%s \n", __LINE__, __func__, params_node->program_output, params_node->output_path);
 			file_comp_flag = file_compare(params_node->program_output, params_node->output_path);
 			switch (file_comp_flag) {
 			case(0):
@@ -68,8 +81,9 @@ DWORD WINAPI test_and_compare(LPVOID lpParam)
 	}
 	
 	CloseHandle(proc_info.hThread);
-	CloseHandle(proc_info.hThread);
+	CloseHandle(proc_info.hProcess);
 	free(p_command);
+	p_command = NULL;
 	return STATUS_CODE_SUCCESS;
 }
 
@@ -82,7 +96,7 @@ Return: A handle of the thread that was created.
 */
 HANDLE CreateThreadSimple(LPTHREAD_START_ROUTINE p_start_routine, Threads_to_run_s **recievd_Threads_to_run_s)
 {
-	HANDLE thread_handle;
+	HANDLE thread_handle = NULL;
 
 	if (NULL == p_start_routine)
 	{

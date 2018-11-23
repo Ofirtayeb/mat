@@ -17,13 +17,14 @@ int thread_list_creator(Threads_to_run_s *head,char *file_path) {
 	char *command_line = NULL;
 	char *output_path = NULL;//strcpy? allocate?
 	FILE *input_file_stream = NULL;
-	Threads_to_run_s *curr;
-
-	errno_t retval;
+	Threads_to_run_s *curr = NULL;
+	errno_t retval = NULL;
+	printf("LINE:%d, function %s\n", __LINE__, __func__);
 	retval = fopen_s(&input_file_stream, file_path, "r");
 
 	if (0 != retval)
 	{
+		printf("LINE:%d, function %s\n", __LINE__, __func__);
 		printf("Failed to open file.\n");
 		return STATUS_CODE_FAILURE;
 	}
@@ -52,6 +53,7 @@ int thread_list_creator(Threads_to_run_s *head,char *file_path) {
 		curr = new_Threads_to_run_s;
 		p_ret_str = fgets(p_line, MAX_LINE_LEN, input_file_stream);
 	}
+	printf("LINE:%d, function %s\n", __LINE__, __func__);
 	retval = fclose(input_file_stream);
 	if (0 != retval)
 		return STATUS_CODE_FAILURE;
@@ -74,10 +76,11 @@ void thread_list_creator_helper_command(Threads_to_run_s *node, char *command_li
 	if (node->command_line == NULL) return STATUS_CODE_FAILURE;
 	strcpy_s(node->command_line, strlen(command_line) + 1, command_line);
 
-
-
 	node->program_output = (char*)malloc((strlen(command_line) + 1) * sizeof(char));
 	if (node->program_output == NULL) return STATUS_CODE_FAILURE;
+
+	node->message = (char*)malloc(MAX_MESSAGE_LEN * sizeof(char));
+	if (node->message == NULL) return STATUS_CODE_FAILURE;
 
 	program_path = strchr(command_line, ' ');
 	if (NULL != program_path) {
@@ -102,16 +105,9 @@ void thread_list_creator_helper_command(Threads_to_run_s *node, char *command_li
 	if (node->output_path == NULL) return STATUS_CODE_FAILURE;
 	strcpy_s(node->output_path, strlen(output_path) + 1, output_path);
 
-
-	node->thread_handle = (HANDLE *)malloc(sizeof(HANDLE));
-	if (node->thread_handle == NULL) return STATUS_CODE_FAILURE;
-	node->return_value = (DWORD *)malloc(sizeof(DWORD));
-	if (node->return_value == NULL) return STATUS_CODE_FAILURE;
-	node->status = (DWORD *)malloc(sizeof(DWORD));
-	if (node->status == NULL) return STATUS_CODE_FAILURE;
 	node->thread_handle = NULL;
 	node->return_value = NULL;
-	node->status = 69696969;
+	node->status = NULL;
 }
 
 
@@ -123,14 +119,16 @@ are printed.
 Return: void.
 */
 void print_output(Threads_to_run_s *node, char *file_path) {
-	errno_t retval;
+	errno_t retval = NULL;
 	FILE *input_file_stream = NULL;
-	Threads_to_run_s *temp = node;
+	Threads_to_run_s *temp = NULL;
 	int test_number = 1;
-
+	temp = node;
+	printf("LINE:%d, function %s\n", __LINE__, __func__);
 	retval = fopen_s(&input_file_stream, file_path, "a+");
 	if (0 != retval)
 	{
+		printf("LINE:%d, function %s\n", __LINE__, __func__);
 		printf("Failed to open file.\n");
 		return STATUS_CODE_FAILURE;
 	}
@@ -150,10 +148,11 @@ void print_output(Threads_to_run_s *node, char *file_path) {
 		test_number++;
 		temp = temp->next;
 	}
-
+	printf("LINE:%d, function %s\n", __LINE__, __func__);
 	retval = fclose(input_file_stream);
 	if (0 != retval)
 	{
+		printf("LINE:%d, function %s\n ", __LINE__, __func__); 
 		printf("Failed to close file.\n");
 		return STATUS_CODE_FAILURE;
 	}
@@ -177,9 +176,7 @@ void free_linked_list(Threads_to_run_s **head) {
 			free(current->command_line);
 			free(current->output_path);
 			free(current->program_output);
-			free(current->return_value);
-			free(current->status);
-			free(current->thread_handle);
+			free(current->message);
 			free(current);
 		}
 		current = next;
